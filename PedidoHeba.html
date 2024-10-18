@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedidos Heba</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .producto {
+            margin-bottom: 10px;
+        }
+        #resumen {
+            margin-top: 20px;
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+        }
+        .hidden {
+            display: none;
+        }
+        #logo {
+            max-width: 200px; /* Ajusta el tamaño del logo */
+            margin-bottom: 20px; /* Espaciado debajo del logo */
+        }
+    </style>
+</head>
+<body>
+    <img id="logo" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS3XvcbTK1wjWyQeUa5LUDK3kxzJEbOj54yJPH9B8tDB0YnaTMIJoqQ2-yfih0EKkHZ-HU&usqp=CAU" alt="Logo de Heba">
+    
+    <h1>Pedido Heba</h1>
+    <div class="producto">
+        <label>Falta: $200
+            <input type="number" id="falta" min="0" value="0" oninput="calcularTotal()">
+        </label>
+    </div>
+    <div class="producto">
+        <label>Matambre: $150
+            <input type="number" id="matambre" min="0" value="0" oninput="calcularTotal()">
+        </label>
+    </div>
+    <div class="producto">
+        <label>Asado: $250
+            <input type="number" id="asado" min="0" value="0" oninput="calcularTotal()">
+        </label>
+    </div>
+    
+    <div id="contacto" class="hidden">
+        <h2>Información de Contacto</h2>
+        <label>Nombre:
+            <input type="text" id="nombre">
+        </label><br>
+        <label>Teléfono:
+            <input type="text" id="telefono">
+        </label><br>
+        <label>Dirección:
+            <input type="text" id="direccion">
+        </label><br>
+    </div>
+    
+    <button id="realizarPedidoBtn" onclick="mostrarFormulario()">Realizar Pedido</button>
+    <button id="confirmarPedidoBtn" class="hidden" onclick="confirmarPedido()">Confirmar Pedido</button>
+
+    <div id="resumen"></div>
+    <div id="whatsappLink" class="hidden"></div>
+
+    <script>
+        function mostrarFormulario() {
+            document.getElementById('contacto').classList.remove('hidden');
+            document.getElementById('realizarPedidoBtn').classList.add('hidden');
+            document.getElementById('confirmarPedidoBtn').classList.remove('hidden');
+            calcularTotal();
+        }
+
+        function calcularTotal() {
+            const falta = document.getElementById('falta').value;
+            const matambre = document.getElementById('matambre').value;
+            const asado = document.getElementById('asado').value;
+
+            let total = 0;
+            let resumenHTML = '<h2>Resumen de Pedido</h2>';
+
+            if (falta > 0) {
+                resumenHTML += `Falta: $200 x ${falta} = $${200 * falta}<br>`;
+                total += 200 * falta;
+            }
+            if (matambre > 0) {
+                resumenHTML += `Matambre: $150 x ${matambre} = $${150 * matambre}<br>`;
+                total += 150 * matambre;
+            }
+            if (asado > 0) {
+                resumenHTML += `Asado: $250 x ${asado} = $${250 * asado}<br>`;
+                total += 250 * asado;
+            }
+
+            resumenHTML += `<strong>Total: $${total}</strong><br>`;
+
+            document.getElementById('resumen').innerHTML = resumenHTML;
+        }
+
+        function confirmarPedido() {
+            const falta = document.getElementById('falta').value;
+            const matambre = document.getElementById('matambre').value;
+            const asado = document.getElementById('asado').value;
+            const nombre = document.getElementById('nombre').value;
+            const telefono = document.getElementById('telefono').value;
+            const direccion = document.getElementById('direccion').value;
+
+            const data = [];
+            if (falta > 0) data.push(["Falta", falta, 200, 200 * falta]);
+            if (matambre > 0) data.push(["Matambre", matambre, 150, 150 * matambre]);
+            if (asado > 0) data.push(["Asado", asado, 250, 250 * asado]);
+
+            const total = (200 * falta) + (150 * matambre) + (250 * asado);
+            data.push(["Total", "", "", total]);
+            data.push(["Nombre", "", "", nombre]);
+            data.push(["Teléfono", "", "", telefono]);
+            data.push(["Dirección", "", "", direccion]);
+
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Resumen Pedido");
+            const fileName = "Resumen_Pedido.xlsx";
+            XLSX.writeFile(wb, fileName);
+            
+            // Crear el enlace de WhatsApp
+            const mensaje = `Hola, he realizado un pedido;\n\n${data.map(row => row.join('; ')).join('\n')}`;
+            const telefonoWhatsapp = "59892000262"; // Número de WhatsApp en formato internacional
+            const encodedMensaje = encodeURIComponent(mensaje);
+            const linkWhatsApp = `https://wa.me/${telefonoWhatsapp}?text=${encodedMensaje}`;
+            
+            document.getElementById('whatsappLink').innerHTML = `<a href="${linkWhatsApp}" target="_blank">Enviar pedido por WhatsApp</a>`;
+            document.getElementById('whatsappLink').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
